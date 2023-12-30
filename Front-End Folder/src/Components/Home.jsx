@@ -1,121 +1,58 @@
+import React, { useState } from 'react'
+import './style.css'
 import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-const Home = () => {
-  const [adminTotal, setAdminTotal] = useState(0)
-  const [employeeTotal, setemployeeTotal] = useState(0)
-  const [salaryTotal, setSalaryTotal] = useState(0)
-  const [admins, setAdmins] = useState([])
+const Login = () => {
 
-  useEffect(() => {
-    adminCount();
-    employeeCount();
-    salaryCount();
-    AdminRecords();
-  }, [])
-
-  const AdminRecords = () => {
-    axios.get('http://localhost:3000/auth/admin_records')
-    .then(result => {
-      if(result.data.Status) {
-        setAdmins(result.data.Result)
-      } else {
-         alert(result.data.Error)
-      }
+    const [values, setValues] = useState({
+        email: '',
+        password: ''
     })
-  }
-  const adminCount = () => {
-    axios.get('http://localhost:3000/auth/admin_count')
-    .then(result => {
-      if(result.data.Status) {
-        setAdminTotal(result.data.Result[0].admin)
-      }
-    })
-  }
-  const employeeCount = () => {
-    axios.get('http://localhost:3000/auth/employee_count')
-    .then(result => {
-      if(result.data.Status) {
-        setemployeeTotal(result.data.Result[0].employee)
-      }
-    })
-  }
-  const salaryCount = () => {
-    axios.get('http://localhost:3000/auth/salary_count')
-    .then(result => {
-      if(result.data.Status) {
-        setSalaryTotal(result.data.Result[0].salaryOFEmp)
-      } else {
-        alert(result.data.Error)
-      }
-    })
-  }
-  return (
-    <div>
-      <div className='p-3 d-flex justify-content-around mt-3'>
-        <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-          <div className='text-center pb-1'>
-            <h4>Admin</h4>
-          </div>
-          <hr />
-          <div className='d-flex justify-content-between'>
-            <h5>Total:</h5>
-            <h5>{adminTotal}</h5>
-          </div>
-        </div>
-        <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-          <div className='text-center pb-1'>
-            <h4>Employee</h4>
-          </div>
-          <hr />
-          <div className='d-flex justify-content-between'>
-            <h5>Total:</h5>
-            <h5>{employeeTotal}</h5>
-          </div>
-        </div>
-        <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-          <div className='text-center pb-1'>
-            <h4>Salary</h4>
-          </div>
-          <hr />
-          <div className='d-flex justify-content-between'>
-            <h5>Total:</h5>
-            <h5>${salaryTotal}</h5>
-          </div>
-        </div>
-      </div>
-      <div className='mt-4 px-5 pt-3'>
-        <h3>List of Admins</h3>
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              admins.map(a => (
-                <tr>
-                  <td>{a.email}</td>
-                  <td>
-                  <button
-                    className="btn btn-info btn-sm me-2">
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-warning btn-sm" >
-                    Delete
-                  </button>
-                  </td>
-                </tr>
-              ))
+    const [error, setError] = useState(null)
+    const navigate = useNavigate()
+    axios.defaults.withCredentials = true;
+    const handleSubmit = (event) => {
+        event.preventDefault()
+        axios.post('http://localhost:3000/auth/adminlogin', values)
+        .then(result => {
+            if(result.data.loginStatus) {
+                localStorage.setItem("valid", true)
+                navigate('/dashboard')
+            } else {
+                setError(result.data.Error)
             }
-          </tbody>
-        </table>
-      </div>
+        })
+        .catch(err => console.log(err))
+    }
+
+  return (
+    <div className='d-flex justify-content-center align-items-center vh-100 loginPage'>
+        <div className='p-3 rounded w-25 border loginForm'>
+            <div className='text-warning'>
+                {error && error}
+            </div>
+            <h2>Login Page</h2>
+            <form onSubmit={handleSubmit}>
+                <div className='mb-3'>
+                    <label htmlFor="email"><strong>Email:</strong></label>
+                    <input type="email" name='email' autoComplete='off' placeholder='Enter Email'
+                     onChange={(e) => setValues({...values, email : e.target.value})} className='form-control rounded-0'/>
+                </div>
+                <div className='mb-3'> 
+                    <label htmlFor="password"><strong>Password:</strong></label>
+                    <input type="password" name='password' placeholder='Enter Password'
+                     onChange={(e) => setValues({...values, password : e.target.value})} className='form-control rounded-0'/>
+                </div>
+                <button className='btn btn-success w-100 rounded-0 mb-2'>Log in</button>
+                <div className='mb-1'> 
+                    <input type="checkbox" name="tick" id="tick" className='me-2'/>
+                    <label htmlFor="password">You are Agree with terms & conditions</label>
+                </div>
+            </form>
+        </div>
     </div>
   )
 }
 
-export default Home
+export default Login
